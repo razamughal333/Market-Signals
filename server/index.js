@@ -11,6 +11,7 @@ const searchRouter = require('./routes/search');
 const exploreRouter = require('./routes/explore');
 const cache = require('./services/cache');
 const { refreshAll } = require('./services/refresh');
+const { connectDB } = require('./services/db');
 
 const app = express();
 app.use(cors());
@@ -29,10 +30,10 @@ app.get('/', (req, res) => {
   res.send('Market Signals API is running');
 });
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log('Client connected:', socket.id);
   // send whatever we already have immediately, so the client doesn't wait for the next cron tick
-  socket.emit('assets:update', cache.getAll());
+  socket.emit('assets:update', await cache.getAll());
 });
 
 const PORT = process.env.PORT || 5000;
@@ -40,7 +41,7 @@ const PORT = process.env.PORT || 5000;
 async function refreshAndBroadcast() {
   console.log('Refreshing asset data...');
   await refreshAll();
-  io.emit('assets:update', cache.getAll());
+  io.emit('assets:update', await cache.getAll());
 }
 
 server.listen(PORT, async () => {
@@ -50,6 +51,7 @@ server.listen(PORT, async () => {
     console.warn('WARNING: TWELVE_DATA_API_KEY is missing from .env — data fetches will fail.');
   }
 
+  await connectDB(); // safe to call even if MONGODB_URI isn't set yet — falls back to memory
   await refreshAndBroadcast(); // populate cache immediately on startup
   cron.schedule('*/5 * * * *', refreshAndBroadcast); // then every 5 minutes
 });

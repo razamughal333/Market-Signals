@@ -6,8 +6,8 @@ const assetsConfig = require('../data/assets');
 const { refreshAsset } = require('../services/refresh');
 
 // GET /api/assets — the list page: all 4 assets with their latest price + signal
-router.get('/', (req, res) => {
-  const all = cache.getAll();
+router.get('/', async (req, res) => {
+  const all = await cache.getAll();
   const list = assetsConfig.map((asset) => {
     const data = all[asset.id];
     if (!data) return { ...asset, status: 'loading' };
@@ -24,7 +24,7 @@ router.get('/:id', async (req, res) => {
     return res.status(404).json({ error: 'Unknown asset' });
   }
 
-  let data = cache.getAsset(asset.id);
+  let data = await cache.getAsset(asset.id);
   if (!data) {
     data = await refreshAsset(asset); // first request ever — fetch on demand
   }

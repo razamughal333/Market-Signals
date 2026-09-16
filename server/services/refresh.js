@@ -9,8 +9,8 @@ async function refreshAsset(asset) {
     const candles = await getTimeSeries(asset.symbol, interval, 100);
     const result = computeIndicators(candles);
     const data = { ...asset, ...result, interval, candles };
-    cache.setAsset(asset.id, data);
-    return cache.getAsset(asset.id);
+    await cache.setAsset(asset.id, data);
+    return await cache.getAsset(asset.id);
   } catch (err) {
     console.error(`Failed to refresh ${asset.symbol}: ${err.message}`);
     return null;
