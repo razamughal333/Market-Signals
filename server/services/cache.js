@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Asset = require('../models/Asset');
+const mongoose = require("mongoose");
+const Asset = require("../models/Asset");
 
 // In-memory fallback — kept in sync on every write regardless of DB state,
 // so reads are instant and the app still works if MongoDB is unreachable.
@@ -15,7 +15,10 @@ async function setAsset(id, data) {
 
   if (isDbConnected()) {
     try {
-      await Asset.findOneAndUpdate({ id }, payload, { upsert: true, new: true });
+      await Asset.findOneAndUpdate({ id }, payload, {
+        upsert: true,
+        returnDocument: "after",
+      });
     } catch (err) {
       console.error(`Failed to save ${id} to MongoDB: ${err.message}`);
     }
